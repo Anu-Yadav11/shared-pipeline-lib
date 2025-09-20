@@ -1,18 +1,24 @@
-def call(string status) {
-    def recipients='a367.ay@gmail.com , anu93071@gmail.com'
+// vars/notify.groovy
+def call(String status) {
+  def recipients = 'a367.ay@gmail.com, anu93071@gmail.com'
 
-    emailtext(
-        to: recipients,
-        subject: "${status}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-        body: """Hello team,
+  // quick echo so we can confirm library loaded in console
+  echo "notify called with status = ${status}, recipients = ${recipients}"
 
-        job : ${env.JOB_NAME}
-        Build: #${env.BUILD_NUMBER}
-        status: ${status}
-        URL: ${env.BUILD_URL}console
+  // send email (requires Email Extension plugin and global SMTP config)
+  emailext(
+    to: recipients,
+    subject: "${status}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+    body: """Hello team,
 
-        -- jenkins
-        """,
-        mimeType: 'text/plain'
-    )
+Job   : ${env.JOB_NAME}
+Build : ${env.BUILD_NUMBER}
+Status: ${status}
+URL   : ${env.BUILD_URL}console
+
+-- jenkins
+""",
+    mimeType: 'text/plain'
+  )
 }
+
