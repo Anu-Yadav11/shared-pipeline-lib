@@ -8,7 +8,7 @@ def call(String status) {
   def color = (status == "SUCCESS") ? "green" : "red"
 
   // send HTML email with color
-  emailext(
+  mail(
     to: recipients,
     subject: "${status}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
     body: """
