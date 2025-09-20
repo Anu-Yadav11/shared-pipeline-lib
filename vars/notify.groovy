@@ -6,7 +6,7 @@ def call(String status) {
   echo "notify called with status = ${status}, recipients = ${recipients}"
 
   // send email (requires Email Extension plugin and global SMTP config)
-  emailext(
+  mail(
     to: recipients,
     subject: "${status}: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
     body: """Hello team,
