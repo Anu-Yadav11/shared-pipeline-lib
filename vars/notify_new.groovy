@@ -1,4 +1,4 @@
-def call(string status, Map opts =[:]){
+def call(String status, Map opts =[:]){
     def recipients = opts.to ?: 'a367.ay@gmail.com, anu93071@gmail.com'
     def attachPattern = opts.attachmentsPattern ?: 'build-report.txt'
 
