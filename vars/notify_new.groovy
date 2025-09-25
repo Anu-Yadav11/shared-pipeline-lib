@@ -11,7 +11,7 @@ def call(string status, Map opts =[:]){
     result : ${status}
     url : ${env.BUILD_URL}
     branch : ${env.BRANCH_NAME ?: 'N/A'}
-    user : ${env.BUILD_USER ?: 'N/A}
+    user : ${env.BUILD_USER ?: 'N/A'}
 
     """
 
