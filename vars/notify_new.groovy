@@ -21,7 +21,7 @@ def call(string status, Map opts =[:]){
         
     }
     catch (e) {
-        echo "failed to write buil-report.txt: $(e)"
+        echo "failed to write buil-report.txt: ${e}"
     }
 
     def color =(status== "success") ? "green" : "red"
