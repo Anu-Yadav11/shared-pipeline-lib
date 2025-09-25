@@ -24,7 +24,7 @@ def call(String status, Map opts =[:]){
         echo "failed to write buil-report.txt: ${e}"
     }
 
-    def color =(status== "success") ? "green" : "red"
+    def color =(status== "SUCCESS") ? "green" : "red"
 
     def htmlBody = """<html>
   <body>
