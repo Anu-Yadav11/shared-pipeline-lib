@@ -55,8 +55,9 @@ URL    : ${env.BUILD_URL}
   }"""
 
   sh """
-    echo '${jsonDoc}' | mongosh "mongodb://admin:admin@localhost:27017/shiftsDB" --quiet --eval 'const doc=JSON.parse(cat("/dev/stdin")); db.shifts.insertOne(doc);'
-  """
+  echo '${jsonDoc}' | docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB" --quiet --eval 'const doc=JSON.parse(cat("/dev/stdin")); db.shifts.insertOne(doc);'
+"""
+
 
   echo "Shift notification + DB record saved for ${name}"
 }
