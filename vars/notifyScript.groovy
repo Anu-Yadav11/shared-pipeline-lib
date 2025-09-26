@@ -33,8 +33,8 @@ URL    : ${env.BUILD_URL}
  // archiveArtifacts artifacts: 'shift-history.log'
 
   // Telegram
-  def botToken = "<YOUR_BOT_TOKEN>"
-  def chatId   = "<YOUR_GROUP_CHAT_ID>"
+  def botToken = "8272985598:AAFZ33GjxAKChoNkveXYNcRX-6hsyAbFtUM"
+    def chatId = "-4870913458"
   sh """
     curl -s -X POST https://api.telegram.org/bot${botToken}/sendMessage \
     -d chat_id=${chatId} \
