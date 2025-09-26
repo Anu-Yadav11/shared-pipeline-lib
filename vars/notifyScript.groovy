@@ -1,45 +1,48 @@
-def call(Map opts = [:] ){
-    def name = opts.name ?: 'Unknown'
-    def day = opts.day ?: '??'
-    def month = opts.month ?: '??'
-    def timing = opts.shift_timing ?: 'Not given'
-    def status = opts.shift_status ?: 'start'
+// vars/notifyShift.groovy
+def call(Map opts = [:]) {
+  def name   = opts.name ?: 'Unknown'
+  def day    = opts.day ?: '??'
+  def month  = opts.month ?: '??'
+  def timing = opts.shift_timing ?: 'Not given'
+  def status = opts.shift_status ?: 'start'
 
-    def msg = """${name} shift ${status}ed
-    Day: ${day}, Month: ${month}
+  def msg = """${name} shift ${status}ed
+Day: ${day}, Month: ${month}
 Timing: ${timing}
 """
-  //Save shift report
 
-  def report ="""\
-   shift Report
-   =============
-    Person : ${name}
-    Day    : ${day}
-    Month  : ${month}
-    Timing : ${timing}
-    Status : ${status.toUpperCase()}
-    Job    : ${env.JOB_NAME}
-    Build  : ${env.BUILD_NUMBER}
-    URL    : ${env.BUILD_URL}
-    """
-    writeFile file: 'shift-report.txt', text: report
-    archiveArtifacts artifacts: 'shift-report.txt'
+  // Save shift report
+  def report = """\
+Shift Report
+============
 
-    // Append to history log
-    sh """echo '${report}' >> shift-report.log"""
-    archiveArtifacts artifacts: 'shift-history.log'
+Person : ${name}
+Day    : ${day}
+Month  : ${month}
+Timing : ${timing}
+Status : ${status.toUpperCase()}
+Job    : ${env.JOB_NAME}
+Build  : ${env.BUILD_NUMBER}
+URL    : ${env.BUILD_URL}
+"""
+  writeFile file: 'shift-report.txt', text: report
+  //archiveArtifacts artifacts: 'shift-report.txt'
 
-    //telegram block start
+  // Append to history log
+  sh """echo '${report}' >> shift-history.log"""
+ // archiveArtifacts artifacts: 'shift-history.log'
 
-    def botToken = "8272985598:AAFZ33GjxAKChoNkveXYNcRX-6hsyAbFtUM"
-    def chatId = "-4870913458"
-    sh """
+  // Telegram
+  def botToken = "<YOUR_BOT_TOKEN>"
+  def chatId   = "<YOUR_GROUP_CHAT_ID>"
+  sh """
     curl -s -X POST https://api.telegram.org/bot${botToken}/sendMessage \
     -d chat_id=${chatId} \
     -d text="${msg}"
   """
-    def jsonDoc = """{
+
+  // MongoDB Insert (requires mongosh installed on Jenkins node/agent)
+  def jsonDoc = """{
     "name": "${name}",
     "day": "${day}",
     "month": "${month}",
@@ -51,10 +54,9 @@ Timing: ${timing}
     "timestamp": "${new Date().format('yyyy-MM-dd HH:mm:ss')}"
   }"""
 
-    sh """
+  sh """
     echo '${jsonDoc}' | mongosh "mongodb://admin:admin@localhost:27017/shiftsDB" --quiet --eval 'const doc=JSON.parse(cat("/dev/stdin")); db.shifts.insertOne(doc);'
   """
 
   echo "Shift notification + DB record saved for ${name}"
-
 }
