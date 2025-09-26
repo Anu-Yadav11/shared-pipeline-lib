@@ -25,12 +25,6 @@ withCredentials([string(credentialsId: 'telegram-token', variable: 'TG_TOKEN'),
   //def botToken = "8272985598:AAFZ33GjxAKChoNkveXYNcRX-6hsyAbFtUM"  // replace with your token
   //def chatId   = "-4870913458"                                     // replace with your chat id
 
-  sh """
-    curl -s -X POST https://api.telegram.org/bot${botToken}/sendMessage \
-      -d chat_id=${chatId} \
-      -d text="${msg}"
-  """
-
   // ----- Shift report -----
   def report = """\
 Shift Report
