@@ -42,23 +42,47 @@ URL    : ${env.BUILD_URL}
   writeFile file: 'shift-report.txt', text: report
   sh """echo '${report}' >> shift-history.log"""
 
-  // ----- MongoDB insert (using docker exec) -----
-  def jsonDoc = """{
-    "name": "${name}",
-    "day": "${day}",
-    "month": "${month}",
-    "timing": "${timing}",
-    "status": "${status}",
-    "job": "${env.JOB_NAME}",
-    "build": "${env.BUILD_NUMBER}",
-    "url": "${env.BUILD_URL}",
-    "timestamp": "${new Date().format('yyyy-MM-dd HH:mm:ss')}"
-  }"""
+    // ----- MongoDB insert/update with idempotency -----
+  def now = new Date().format('yyyy-MM-dd HH:mm:ss')
 
-  sh """
-    docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" \
-      --quiet --eval 'db.shifts.insertOne(${jsonDoc})'
-  """
+  if (status == "start") {
+    sh """
+      docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" --quiet --eval '
+        const existing = db.shifts.findOne({name: "${name}", day: "${day}", month: "${month}", matched_end: false});
+        if (existing) {
+          print("⚠️ Shift already started for ${name} on ${day}-${month}, skipping insert.");
+        } else {
+          db.shifts.insertOne({
+            name: "${name}",
+            day: "${day}",
+            month: "${month}",
+            timing: "${timing}",
+            start_timestamp: "${now}",
+            matched_end: false,
+            job: "${env.JOB_NAME}",
+            build: "${env.BUILD_NUMBER}",
+            url: "${env.BUILD_URL}"
+          });
+          print("✅ Shift START recorded for ${name}");
+        }
+      '
+    """
+  } else if (status == "end") {
+    sh """
+      docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" --quiet --eval '
+        const openShift = db.shifts.findOneAndUpdate(
+          {name: "${name}", day: "${day}", month: "${month}", matched_end: false},
+          {$set: {end_timestamp: "${now}", matched_end: true}}
+        );
+        if (openShift) {
+          print("✅ Shift END recorded for ${name}");
+        } else {
+          print("⚠️ No active shift found for ${name} on ${day}-${month}, cannot close.");
+        }
+      '
+    """
+  }
+
 
 
   echo "Shift notification + DB record saved for ${name}"
