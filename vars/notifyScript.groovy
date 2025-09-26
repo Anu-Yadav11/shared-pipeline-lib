@@ -6,12 +6,22 @@ def call(Map opts = [:]) {
   def timing = opts.shift_timing ?: 'Not given'
   def status = opts.shift_status ?: 'start'
 
+  // ----- Telegram message -----
   def msg = """${name} shift ${status}ed
 Day: ${day}, Month: ${month}
 Timing: ${timing}
 """
 
-  // Save shift report
+  def botToken = "8272985598:AAFZ33GjxAKChoNkveXYNcRX-6hsyAbFtUM"  // replace with your token
+  def chatId   = "-4870913458"                                     // replace with your chat id
+
+  sh """
+    curl -s -X POST https://api.telegram.org/bot${botToken}/sendMessage \
+      -d chat_id=${chatId} \
+      -d text="${msg}"
+  """
+
+  // ----- Shift report -----
   def report = """\
 Shift Report
 ============
@@ -26,22 +36,9 @@ Build  : ${env.BUILD_NUMBER}
 URL    : ${env.BUILD_URL}
 """
   writeFile file: 'shift-report.txt', text: report
-  //archiveArtifacts artifacts: 'shift-report.txt'
-
-  // Append to history log
   sh """echo '${report}' >> shift-history.log"""
- // archiveArtifacts artifacts: 'shift-history.log'
 
-  // Telegram
-  def botToken = "8272985598:AAFZ33GjxAKChoNkveXYNcRX-6hsyAbFtUM"
-    def chatId = "-4870913458"
-  sh """
-    curl -s -X POST https://api.telegram.org/bot${botToken}/sendMessage \
-    -d chat_id=${chatId} \
-    -d text="${msg}"
-  """
-
-  // MongoDB Insert (requires mongosh installed on Jenkins node/agent)
+  // ----- MongoDB insert (using docker exec) -----
   def jsonDoc = """{
     "name": "${name}",
     "day": "${day}",
@@ -55,9 +52,9 @@ URL    : ${env.BUILD_URL}
   }"""
 
   sh """
-  echo '${jsonDoc}' | docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB" --quiet --eval 'const doc=JSON.parse(cat("/dev/stdin")); db.shifts.insertOne(doc);'
-"""
-
+    echo '${jsonDoc}' | docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" \
+      --quiet --eval 'const doc=JSON.parse(cat("/dev/stdin")); db.shifts.insertOne(doc);'
+  """
 
   echo "Shift notification + DB record saved for ${name}"
 }
