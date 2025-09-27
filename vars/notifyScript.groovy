@@ -46,7 +46,8 @@ URL    : ${env.BUILD_URL}
   def now = new Date().format('yyyy-MM-dd HH:mm:ss')
 
   if (status == "start") {
-    mangoOutput = sh ("""
+    mangoOutput = sh (
+      script: """
       docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" --quiet --eval '
         const existing = db.shifts.findOne({name: "${name}", day: "${day}", month: "${month}", matched_end: false});
         if (existing) {
@@ -68,10 +69,11 @@ URL    : ${env.BUILD_URL}
       '
     """,
     returnStdout: true
-      ).trim()
+    ).trim()
   } else if (status == "end") {
 
-   mangoOutput =  sh ("""
+   mangoOutput =  sh (
+    script: """
       docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" --quiet --eval '
         const openShift = db.shifts.findOneAndUpdate(
           {name: "${name}", day: "${day}", month: "${month}", matched_end: false},
@@ -84,8 +86,7 @@ URL    : ${env.BUILD_URL}
         }
       '
     """,
-    returnStdout: true
-    ).trim() 
+    returnStdout: true).trim() 
   }
 
   if (mongoOutput.contains("✅ Shift START recorded") || mongoOutput.contains("✅ Shift END recorded")) {
