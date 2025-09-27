@@ -66,6 +66,22 @@ URL    : ${env.BUILD_URL}
             url: "${env.BUILD_URL}"
           });
           print("✅ Shift START recorded for ${name}");
+          def msg = """${name} shift ${status}ed
+Day: ${day}, Month: ${month}
+Timing: ${timing}
+"""
+
+    withCredentials([
+      string(credentialsId: 'telegram-token', variable: 'TG_TOKEN'),
+      string(credentialsId: 'telegram-chatid', variable: 'TG_CHAT')
+    ]) {
+      sh """
+        curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage \
+          -d chat_id=${TG_CHAT} \
+          -d text="${msg}"
+      """
+    };
+          
         }
       '
     """,
@@ -82,6 +98,21 @@ URL    : ${env.BUILD_URL}
         );
         if (openShift) {
           print("✅ Shift END recorded for ${name}");
+          def msg = """${name} shift ${status}ed
+Day: ${day}, Month: ${month}
+Timing: ${timing}
+"""
+
+    withCredentials([
+      string(credentialsId: 'telegram-token', variable: 'TG_TOKEN'),
+      string(credentialsId: 'telegram-chatid', variable: 'TG_CHAT')
+    ]) {
+      sh """
+        curl -s -X POST https://api.telegram.org/bot${TG_TOKEN}/sendMessage \
+          -d chat_id=${TG_CHAT} \
+          -d text="${msg}"
+      """
+    };
         } else {
           print("⚠️ No active shift found for ${name} on ${day}-${month}, cannot close.");
         }
@@ -90,7 +121,7 @@ URL    : ${env.BUILD_URL}
     returnStdout: true).trim() 
   }
 
-  if (mongoOutput.contains("✅ Shift START recorded") || mongoOutput.contains("✅ Shift END recorded")) {
+  /*if (mongoOutput.contains("✅ Shift START recorded") || mongoOutput.contains("✅ Shift END recorded")) {
     def msg = """${name} shift ${status}ed
 Day: ${day}, Month: ${month}
 Timing: ${timing}
@@ -109,7 +140,7 @@ Timing: ${timing}
   } else {
     echo "⚠️ MongoDB operation skipped; not sending Telegram message."
   }
-
+*/
 
 
   echo "Shift notification + DB record saved for ${name}"
