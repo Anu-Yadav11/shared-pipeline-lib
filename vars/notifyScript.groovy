@@ -41,7 +41,7 @@ def call(Map opts = [:]) {
         docker exec -i mongodb mongosh "mongodb://admin:admin@localhost:27017/shiftsDB?authSource=admin" --quiet --eval '
           const openShift = db.shifts.findOneAndUpdate(
             {name: "${name}", day: "${day}", month: "${month}", matched_end: false},
-            {$set: {end_timestamp: "${now}", matched_end: true}}
+            {\$set: {end_timestamp: "${now}", matched_end: true}}
           );
           if (openShift) {
             print("✅ Shift END recorded for ${name}");
