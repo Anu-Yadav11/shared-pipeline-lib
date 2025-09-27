@@ -44,7 +44,7 @@ URL    : ${env.BUILD_URL}
 
     // ----- MongoDB insert/update with idempotency -----
   def now = new Date().format('yyyy-MM-dd HH:mm:ss')
-  def mongoOutput = ""
+  def mongoOutput = " "
 
   if (status == "start") {
     mangoOutput = sh (
