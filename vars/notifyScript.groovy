@@ -67,7 +67,8 @@ URL    : ${env.BUILD_URL}
         }
       '
     """,
-    returnStdout: true).trim()
+    returnStdout: true
+      ).trim()
   } else if (status == "end") {
 
    mangoOutput =  sh ("""
@@ -83,7 +84,8 @@ URL    : ${env.BUILD_URL}
         }
       '
     """,
-    returnStdout: true).trim() 
+    returnStdout: true
+    ).trim() 
   }
 
   if (mongoOutput.contains("✅ Shift START recorded") || mongoOutput.contains("✅ Shift END recorded")) {
